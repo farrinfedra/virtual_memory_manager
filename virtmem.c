@@ -16,7 +16,7 @@
 
 #define PAGE_SIZE 1024
 #define OFFSET_BITS 10
-#define OFFSET_MASK 0x003FF
+#define OFFSET_MASK 0x3FF
 
 #define MEMORY_SIZE PAGES * PAGE_SIZE
 
