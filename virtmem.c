@@ -12,11 +12,11 @@
 
 #define TLB_SIZE 16
 #define PAGES 1024
-#define PAGE_MASK /* TODO */
+#define PAGE_MASK 0xFFC00
 
 #define PAGE_SIZE 1024
 #define OFFSET_BITS 10
-#define OFFSET_MASK /* TODO */
+#define OFFSET_MASK 0x3FF
 
 #define MEMORY_SIZE PAGES * PAGE_SIZE
 
@@ -97,8 +97,8 @@ int main(int argc, const char *argv[])
     /* TODO 
     / Calculate the page offset and logical page number from logical_address */
     int lastBits = logical_address & 0xFFFF; //take last 20 bits
-    int offset = lastBits & 0x3FF; //take last 10 bits
-    int logical_page = lastBits & 0xFFC00; //take first 10 bits
+    int offset = lastBits & OFFSET_MASK; //take last 10 bits
+    int logical_page = lastBits & PAGE_MASK; //take first 10 bits
     printf("20_bit is %d, offset is %d, logical_page is %d", lastBits, offset, logical_page);
     ///////
     
