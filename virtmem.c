@@ -67,8 +67,9 @@ int main(int argc, const char *argv[])
   
   const char *backing_filename = argv[1]; 
   int backing_fd = open(backing_filename, O_RDONLY);
-  backing = mmap(0, MEMORY_SIZE, PROT_READ, MAP_PRIVATE, backing_fd, 0); 
-  
+  backing = mmap(0, MEMORY_SIZE, PROT_READ, MAP_PRIVATE, backing_fd, 0);
+
+
   const char *input_filename = argv[2];
   FILE *input_fp = fopen(input_filename, "r");
     if (!input_fp)
@@ -97,10 +98,9 @@ int main(int argc, const char *argv[])
     /* TODO 
     / Calculate the page offset and logical page number from logical_address */
     int offset = logical_address & OFFSET_MASK; //take last 10 bits
-    int logical_page = logical_address & PAGE_MASK; //take first 10 bits
-    //printf("20_bit is %d, offset is %d, logical_page is %d",offset, logical_page);
+    int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
     ///////
-    
+    printf("The next char is %c the next int is %d\n", backing[logical_page * PAGE_SIZE], backing[logical_page * PAGE_SIZE]);
     int physical_page = search_tlb(logical_page);
     // TLB hit
     if (physical_page != -1) {
@@ -108,9 +108,16 @@ int main(int argc, const char *argv[])
       // TLB miss
     } else {
       physical_page = pagetable[logical_page];
+
       
       // Page fault
       if (physical_page == -1) {
+          page_faults ++;
+          //read 256 bytes from BACKING_STORE.bin
+
+          //store it in an available frame in main_memory
+          //update page table
+          //update tlb
           /* TODO */
       }
 
