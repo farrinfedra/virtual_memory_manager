@@ -16,7 +16,7 @@
 
 #define PAGE_SIZE 1024
 #define OFFSET_BITS 10
-#define OFFSET_MASK 0x3FF
+#define OFFSET_MASK 1023
 
 #define MEMORY_SIZE PAGES * PAGE_SIZE
 
@@ -51,6 +51,7 @@ int max(int a, int b)
 /* Returns the physical address from TLB or -1 if not present. */
 int search_tlb(unsigned char logical_page) {
     /* TODO */
+    return -1;
 }
 
 /* Adds the specified mapping to the TLB, replacing the oldest mapping (FIFO replacement). */
@@ -68,7 +69,6 @@ int main(int argc, const char *argv[])
   const char *backing_filename = argv[1]; 
   int backing_fd = open(backing_filename, O_RDONLY);
   backing = mmap(0, MEMORY_SIZE, PROT_READ, MAP_PRIVATE, backing_fd, 0);
-
 
   const char *input_filename = argv[2];
   FILE *input_fp = fopen(input_filename, "r");
@@ -100,7 +100,7 @@ int main(int argc, const char *argv[])
     int offset = logical_address & OFFSET_MASK; //take last 10 bits
     int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
     ///////
-    printf("The next char is %c the next int is %d\n", backing[logical_page * PAGE_SIZE], backing[logical_page * PAGE_SIZE]);
+
     int physical_page = search_tlb(logical_page);
     // TLB hit
     if (physical_page != -1) {
@@ -113,14 +113,17 @@ int main(int argc, const char *argv[])
       // Page fault
       if (physical_page == -1) {
           page_faults ++;
-          //read 256 bytes from BACKING_STORE.bin
+          physical_page = free_page;
 
-          //store it in an available frame in main_memory
+          //read 256 bytes from BACKING_STORE.bin (backing) store it in an available frame in main_memory
+          memcpy(main_memory + physical_page * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
+          free_page ++;
+
           //update page table
-          //update tlb
-          /* TODO */
-      }
+          pagetable[logical_page] = physical_page;
 
+      }
+        //update tlb
       add_to_tlb(logical_page, physical_page);
     }
     
