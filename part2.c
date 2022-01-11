@@ -19,7 +19,8 @@
 #define OFFSET_BITS 10
 #define OFFSET_MASK 1023
 
-#define MEMORY_SIZE PHYSICAL_PAGES * PAGE_SIZE
+#define MEMORY_SIZE_PHYSICAL PHYSICAL_PAGES * PAGE_SIZE
+#define MEMORY_SIZE_LOGICAL VIRTUAL_PAGES * PAGE_SIZE
 
 // Max number of characters per line of input file to read.
 #define BUFFER_SIZE 10
@@ -42,7 +43,7 @@ int tlbindex = 0;
 
 // pagetable[logical_page] is the physical page number for logical page. Value is -1 if that logical page isn't yet in the table.
 
-signed char main_memory[MEMORY_SIZE];
+signed char main_memory[MEMORY_SIZE_PHYSICAL];
 
 // Pointer to memory mapped backing file
 signed char *backing;
@@ -94,7 +95,6 @@ void add_to_tlb(unsigned char logical, unsigned char physical) {
 
 int fifo_index = -1;
 int FIFO(){
-
     fifo_index++;
     return fifo_index % PHYSICAL_PAGES;
 }
@@ -123,7 +123,7 @@ int main(int argc, const char *argv[])
 
     const char *backing_filename = argv[1];
     int backing_fd = open(backing_filename, O_RDONLY);
-    backing = mmap(0, MEMORY_SIZE, PROT_READ, MAP_PRIVATE, backing_fd, 0);
+    backing = mmap(0, MEMORY_SIZE_LOGICAL, PROT_READ, MAP_PRIVATE, backing_fd, 0);
 
     const char *input_filename = argv[2];
     FILE *input_fp = fopen(input_filename, "r");
@@ -168,7 +168,7 @@ int main(int argc, const char *argv[])
         }else {
             // TLB miss
 
-            if (page_table[logical_page].valid_bit != -1 && page_table[logical_page].physical != -1){
+            if (page_table[logical_page].valid_bit != 0 && page_table[logical_page].physical != -1){
                 physical_page = page_table[logical_page].physical;
             } else {
                 //Page fault
@@ -192,7 +192,6 @@ int main(int argc, const char *argv[])
             }
 
             add_to_tlb(logical_page, physical_page);
-
         }
 
         int physical_address = (physical_page << OFFSET_BITS) | offset;
