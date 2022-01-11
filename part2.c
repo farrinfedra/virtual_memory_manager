@@ -78,14 +78,18 @@ void update_tlb(unsigned char logical, unsigned char physical){
 
 int fifo_index = -1;
 int FIFO(){
-    //start from the first frame
-    for(int i = 0 ; i < PHYSICAL_PAGES; i++) {
-        if(main_memory[i] == -1) {
 
-        }
-    }
+    fifo_index++;
+    //update tlb
 
-    return 1;
+    //update page table
+    //main_memory[fifo_index + PAGE_SIZE];
+    return fifo_index % PHYSICAL_PAGES;
+int page = fifo_index;
+fifo_index++;
+
+    //update page table and tlb entry
+    return fifo_index;
 }
 
 int LRU(){
@@ -169,9 +173,13 @@ int main(int argc, const char *argv[])
                     physical_page = free_page;
                     free_page ++;
                 } else {
+
                     physical_page = page_replacement_policy();
                     //update tlb valid bit
+                    //update_tlb(physical_page);
                     //update pagetable valid bit
+
+                    page_table[logical_page].physical = physical_page;
                 }
 
                 memcpy(main_memory + physical_page * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
