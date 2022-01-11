@@ -76,7 +76,15 @@ void update_tlb(unsigned char logical, unsigned char physical){
     //TODO
 }
 
+int fifo_index = -1;
 int FIFO(){
+    //start from the first frame
+    for(int i = 0 ; i < PHYSICAL_PAGES; i++) {
+        if(main_memory[i] == -1) {
+
+        }
+    }
+
     return 1;
 }
 
@@ -93,9 +101,9 @@ int main(int argc, const char *argv[])
 
     int (*page_replacement_policy)(); //returns the selected index of the pagetable to override.
 
-    if (argv[4] == 0){
+    if (atoi(argv[4]) == 0){
         page_replacement_policy = &FIFO;
-    }else if (argv[4] == 1){
+    }else if (atoi(argv[4]) == 1){
         page_replacement_policy = &LRU;
     }else{
         fprintf(stderr, "Page replacement policy should be 0 or 1\n");
@@ -175,10 +183,9 @@ int main(int argc, const char *argv[])
         int physical_address = (physical_page << OFFSET_BITS) | offset;
         signed char value = main_memory[physical_page * PAGE_SIZE + offset];
 
-        printf("Accessing logical: %d", logical_page);
+        printf("Accessing logical: %d\n", logical_page);
         printf("Virtual address: %d Physical address: %d Value: %d\n", logical_address, physical_address, value);
     }
-
     printf("Number of Translated Addresses = %d\n", total_addresses);
     printf("Page Faults = %d\n", page_faults);
     printf("Page Fault Rate = %.3f\n", page_faults / (1. * total_addresses));
