@@ -51,7 +51,7 @@ int max(int a, int b)
 /* Returns the physical address from TLB or -1 if not present. */
 int search_tlb(unsigned char logical_page) {
     for (int i =0; i< TLB_SIZE; i++){
-        if (strcmp(&tlb[i].logical, &logical_page) ==0 ){
+        if (tlb[i].logical == logical_page ){ //strcmp(&tlb[i].logical, &logical_page) ==0
             return tlb[i].physical;
         }
     }
