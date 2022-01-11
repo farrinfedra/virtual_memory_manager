@@ -30,7 +30,7 @@ struct tlbentry {
     int valid_bit;
 };
 struct pagetable_entry {
-    unsigned char physical;
+    int physical;
     int valid_bit;
 };
 
@@ -88,6 +88,7 @@ void add_to_tlb(unsigned char logical, unsigned char physical) {
     tlb[tlbindex % TLB_SIZE].logical = logical;
     tlb[tlbindex % TLB_SIZE].physical = physical;
     tlb[tlbindex % TLB_SIZE].valid_bit = 1;
+
     tlbindex++;
 }
 
@@ -162,18 +163,15 @@ int main(int argc, const char *argv[])
         int physical_page = search_tlb(logical_page);
         // TLB hit
         if (physical_page != -1) {
-            tlb_hits++;
+             // TLB hit
+                tlb_hits++;
+        }else {
             // TLB miss
-        } else {
 
-            if (page_table[logical_page].valid_bit == 1){
+            if (page_table[logical_page].valid_bit != -1 && page_table[logical_page].physical != -1){
                 physical_page = page_table[logical_page].physical;
-            }else{
-                physical_page = -1;
-            }
-
-            // Page fault
-            if (physical_page == -1) {
+            } else {
+                //Page fault
                 page_faults++;
                 printf("Accessing logical: %d\n", logical_page);
 
@@ -187,7 +185,6 @@ int main(int argc, const char *argv[])
                     /* Update valid bit of overwritten entry at pagetable */
                     update_pagetable(physical_page);
                 }
-
                 memcpy(main_memory + physical_page * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
                 //update page table
                 page_table[logical_page].physical = physical_page;
