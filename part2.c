@@ -13,6 +13,7 @@
 #define TLB_SIZE 16
 #define PAGES 256
 #define PAGE_MASK 0xFFC00
+#define VIRTUAL_PAGES 1024
 
 #define PAGE_SIZE 1024
 #define OFFSET_BITS 10
@@ -26,15 +27,20 @@
 struct tlbentry {
     unsigned char logical;
     unsigned char physical;
+    int valid_bit;
+};
+struct pagetable {
+    unsigned char physical;
+    int valid_bit;
 };
 
 // TLB is kept track of as a circular array, with the oldest element being overwritten once the TLB is full.
 struct tlbentry tlb[TLB_SIZE];
+struct pagetable page_table[VIRTUAL_PAGES];
 // number of inserts into TLB that have been completed. Use as tlbindex % TLB_SIZE for the index of the next TLB line to use.
 int tlbindex = 0;
 
 // pagetable[logical_page] is the physical page number for logical page. Value is -1 if that logical page isn't yet in the table.
-int pagetable[PAGES];
 
 signed char main_memory[MEMORY_SIZE];
 
@@ -62,8 +68,12 @@ int search_tlb(unsigned char logical_page) {
 void add_to_tlb(unsigned char logical, unsigned char physical) {
     tlb[tlbindex % TLB_SIZE].logical = logical;
     tlb[tlbindex % TLB_SIZE].physical = physical;
-
+    tlb[tlbindex % TLB_SIZE].valid_bit = 1;
     tlbindex++;
+}
+
+void update_tlb(unsigned char logical, unsigned char physical){
+    //TODO
 }
 
 int main(int argc, const char *argv[])
@@ -72,17 +82,6 @@ int main(int argc, const char *argv[])
         fprintf(stderr, "Usage ./virtmem backingstore input -p 0/1\n");
         exit(1);
     }
-
-    int algorithm = -1;
-    if (argv[4] == 0){
-          //FIFO
-          algorithm = 0;
-      }
-      else{
-          //LRU
-          algorithm = 1;
-      }
-
 
     const char *backing_filename = argv[1];
     int backing_fd = open(backing_filename, O_RDONLY);
@@ -94,7 +93,7 @@ int main(int argc, const char *argv[])
     // Fill page table entries with -1 for initially empty table.
     int i;
     for (i = 0; i < PAGES; i++) {
-        pagetable[i] = -1;
+        page_table[i].valid_bit = 0;
     }
 
     // Character buffer for reading lines of input file.
@@ -112,8 +111,7 @@ int main(int argc, const char *argv[])
         total_addresses++;
         int logical_address = atoi(buffer);
 
-        /* TODO
-        / Calculate the page offset and logical page number from logical_address */
+        // Calculate the page offset and logical page number from logical_address */
         int offset = logical_address & OFFSET_MASK; //take last 10 bits
         int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
         ///////
@@ -124,11 +122,12 @@ int main(int argc, const char *argv[])
             tlb_hits++;
             // TLB miss
         } else {
-            physical_page = pagetable[logical_page];
+            physical_page = page_table[logical_page].physical;
 
             // Page fault
             if (physical_page == -1) {
                 /* TODO */
+                page_faults ++;
             }
 
             add_to_tlb(logical_page, physical_page);
