@@ -113,11 +113,11 @@ int main(int argc, const char *argv[])
       // Page fault
       if (physical_page == -1) {
           page_faults ++;
-          physical_page = free_page;
 
+          physical_page = free_page;
+          free_page ++;
           //read 256 bytes from BACKING_STORE.bin (backing) store it in an available frame in main_memory
           memcpy(main_memory + physical_page * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
-          free_page ++;
 
           //update page table
           pagetable[logical_page] = physical_page;
