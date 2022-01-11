@@ -11,15 +11,15 @@
 #include <string.h>
 
 #define TLB_SIZE 16
-#define PAGES 256
 #define PAGE_MASK 0xFFC00
 #define VIRTUAL_PAGES 1024
+#define PHYSICAL_PAGES 256 //frames
 
 #define PAGE_SIZE 1024
 #define OFFSET_BITS 10
 #define OFFSET_MASK 1023
 
-#define MEMORY_SIZE PAGES * PAGE_SIZE
+#define MEMORY_SIZE PHYSICAL_PAGES * PAGE_SIZE
 
 // Max number of characters per line of input file to read.
 #define BUFFER_SIZE 10
@@ -29,14 +29,14 @@ struct tlbentry {
     unsigned char physical;
     int valid_bit;
 };
-struct pagetable {
+struct pagetable_entry {
     unsigned char physical;
     int valid_bit;
 };
 
 // TLB is kept track of as a circular array, with the oldest element being overwritten once the TLB is full.
 struct tlbentry tlb[TLB_SIZE];
-struct pagetable page_table[VIRTUAL_PAGES];
+struct pagetable_entry page_table[VIRTUAL_PAGES];
 // number of inserts into TLB that have been completed. Use as tlbindex % TLB_SIZE for the index of the next TLB line to use.
 int tlbindex = 0;
 
@@ -57,7 +57,7 @@ int max(int a, int b)
 /* Returns the physical address from TLB or -1 if not present. */
 int search_tlb(unsigned char logical_page) {
     for (int i =0; i< TLB_SIZE; i++){
-        if (tlb[i].logical == logical_page ){
+        if (tlb[i].logical == logical_page && tlb[i].valid_bit == 1){
             return tlb[i].physical;
         }
     }
@@ -91,7 +91,7 @@ int main(int argc, const char *argv[])
         exit(1);
     }
 
-    int (*page_replacement_policy)();
+    int (*page_replacement_policy)(); //returns the selected index of the pagetable to override.
 
     if (argv[4] == 0){
         page_replacement_policy = &FIFO;
@@ -109,10 +109,15 @@ int main(int argc, const char *argv[])
     const char *input_filename = argv[2];
     FILE *input_fp = fopen(input_filename, "r");
 
-    // Fill page table entries with -1 for initially empty table.
-    int i;
-    for (i = 0; i < PAGES; i++) {
+    // Fill page table entries with 0 for initially empty table.
+
+    for (int i = 0; i < VIRTUAL_PAGES; i++) {
         page_table[i].valid_bit = 0;
+    }
+
+    // Fill page tlb entries with -1 for initially empty table.
+    for (int i = 0; i < TLB_SIZE; i++) {
+        tlb[i].valid_bit = 0;
     }
 
     // Character buffer for reading lines of input file.
@@ -133,7 +138,7 @@ int main(int argc, const char *argv[])
         // Calculate the page offset and logical page number from logical_address */
         int offset = logical_address & OFFSET_MASK; //take last 10 bits
         int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
-        ///////
+
 
         int physical_page = search_tlb(logical_page);
         // TLB hit
@@ -141,21 +146,27 @@ int main(int argc, const char *argv[])
             tlb_hits++;
             // TLB miss
         } else {
-            physical_page = page_table[logical_page].physical;
+
+            if (page_table[logical_page].valid_bit == 1){
+                physical_page = page_table[logical_page].physical;
+            }else{
+                physical_page = -1;
+            }
 
             // Page fault
             if (physical_page == -1) {
                 page_faults ++;
-                int frame_num;
-                if(argv[4] == 0) {
-                    //
-                    frame_num = FIFO();
-                } else{
-                    frame_num = LRU();
+
+                if (free_page < PHYSICAL_PAGES){
+                    physical_page = free_page;
+                    free_page ++;
+                } else {
+                    physical_page = page_replacement_policy();
+                    //update tlb valid bit
+                    //update pagetable valid bit
                 }
 
-                memcpy(main_memory + frame_num * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
-                //TODO: need to modify free_page
+                memcpy(main_memory + physical_page * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
             }
 
             add_to_tlb(logical_page, physical_page);
