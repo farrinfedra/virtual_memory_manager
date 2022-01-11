@@ -1,5 +1,5 @@
 /**
- * virtmem.c 
+ * virtmem.c
  */
 
 #include <stdio.h>
@@ -72,8 +72,8 @@ int main(int argc, const char *argv[])
     fprintf(stderr, "Usage ./virtmem backingstore input\n");
     exit(1);
   }
-  
-  const char *backing_filename = argv[1]; 
+
+  const char *backing_filename = argv[1];
   int backing_fd = open(backing_filename, O_RDONLY);
   backing = mmap(0, MEMORY_SIZE, PROT_READ, MAP_PRIVATE, backing_fd, 0);
 
@@ -86,18 +86,18 @@ int main(int argc, const char *argv[])
   for (i = 0; i < PAGES; i++) {
     pagetable[i] = -1;
   }
-  
+
   // Character buffer for reading lines of input file.
   char buffer[BUFFER_SIZE];
-  
+
   // Data we need to keep track of to compute stats at end.
   int total_addresses = 0;
   int tlb_hits = 0;
   int page_faults = 0;
-  
+
   // Number of the next unallocated physical page in main memory
   unsigned char free_page = 0;
-  
+
   while (fgets(buffer, BUFFER_SIZE, input_fp) != NULL) {
     total_addresses++;
     int logical_address = atoi(buffer);
@@ -114,7 +114,7 @@ int main(int argc, const char *argv[])
     } else {
       physical_page = pagetable[logical_page];
 
-      
+
       // Page fault
       if (physical_page == -1) {
           page_faults ++;
@@ -131,18 +131,18 @@ int main(int argc, const char *argv[])
         //update tlb
       add_to_tlb(logical_page, physical_page);
     }
-    
+
     int physical_address = (physical_page << OFFSET_BITS) | offset;
     signed char value = main_memory[physical_page * PAGE_SIZE + offset];
-    
+
     printf("Virtual address: %d Physical address: %d Value: %d\n", logical_address, physical_address, value);
   }
-  
+
   printf("Number of Translated Addresses = %d\n", total_addresses);
   printf("Page Faults = %d\n", page_faults);
   printf("Page Fault Rate = %.3f\n", page_faults / (1. * total_addresses));
   printf("TLB Hits = %d\n", tlb_hits);
   printf("TLB Hit Rate = %.3f\n", tlb_hits / (1. * total_addresses));
-  
+
   return 0;
 }
