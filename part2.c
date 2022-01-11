@@ -93,6 +93,13 @@ void add_to_tlb(unsigned char logical, unsigned char physical) {
 }
 
 int FIFO(){
+    //start from the first frame
+    for(int i = 0 ; i < PHYSICAL_PAGES; i++) {
+        if(main_memory[i] == -1) {
+
+        }
+    }
+
     return 1;
 }
 
@@ -100,7 +107,8 @@ int LRU(){
     return 2;
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char *argv[])
+{
     if (argc != 5) {
         fprintf(stderr, "Usage ./virtmem backingstore input -p 0/1\n");
         exit(1);
@@ -153,7 +161,7 @@ int main(int argc, const char *argv[]) {
 
         // Calculate the page offset and logical page number from logical_address */
         int offset = logical_address & OFFSET_MASK; //take last 10 bits
-        int logical_page = (logical_address & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
+        int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
 
 
         int physical_page = search_tlb(logical_page);
@@ -194,20 +202,13 @@ int main(int argc, const char *argv[]) {
 
             add_to_tlb(logical_page, physical_page);
 
-        }else {
-//            printf("Accessing logical: %d\n", logical_page);
         }
-
-
-
-
 
         int physical_address = (physical_page << OFFSET_BITS) | offset;
         signed char value = main_memory[physical_page * PAGE_SIZE + offset];
 
         printf("Virtual address: %d Physical address: %d Value: %d\n", logical_address, physical_address, value);
     }
-
     printf("Number of Translated Addresses = %d\n", total_addresses);
     printf("Page Faults = %d\n", page_faults);
     printf("Page Fault Rate = %.3f\n", page_faults / (1. * total_addresses));
