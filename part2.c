@@ -66,6 +66,14 @@ void add_to_tlb(unsigned char logical, unsigned char physical) {
     tlbindex++;
 }
 
+int FIFO(){
+    return 1;
+}
+
+int LRU(){
+    return 2;
+}
+
 int main(int argc, const char *argv[])
 {
     if (argc != 5) {
@@ -73,16 +81,16 @@ int main(int argc, const char *argv[])
         exit(1);
     }
 
-    int algorithm = -1;
-    if (argv[4] == 0){
-          //FIFO
-          algorithm = 0;
-      }
-      else{
-          //LRU
-          algorithm = 1;
-      }
+    int (*page_replacement_policy)();
 
+    if (argv[4] == 0){
+        page_replacement_policy = &FIFO;
+    }else if (argv[4] == 1){
+        page_replacement_policy = &LRU;
+    }else{
+        fprintf(stderr, "Page replacement policy should be 0 or 1\n");
+        exit(1);
+    }
 
     const char *backing_filename = argv[1];
     int backing_fd = open(backing_filename, O_RDONLY);
