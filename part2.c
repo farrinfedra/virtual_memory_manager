@@ -38,6 +38,10 @@ struct pagetable_entry {
 // TLB is kept track of as a circular array, with the oldest element being overwritten once the TLB is full.
 struct tlbentry tlb[TLB_SIZE];
 struct pagetable_entry page_table[VIRTUAL_PAGES];
+
+//Used for LRU
+int lru_table[PHYSICAL_PAGES];
+
 // number of inserts into TLB that have been completed. Use as tlbindex % TLB_SIZE for the index of the next TLB line to use.
 int tlbindex = 0;
 
@@ -99,10 +103,28 @@ int FIFO(){
     return fifo_index % PHYSICAL_PAGES;
 }
 
+
 int LRU(){
-    return 2;
+    int lru_page = -1;
+    int max_value = -1;
+
+    for (int i=0; i<PHYSICAL_PAGES; i++){
+        if (lru_table[i] > max_value){
+            lru_page = i;
+            max_value = lru_table[i];
+        }
+    }
+    return lru_page;
 }
 
+void update_lru_table(int physical_page){
+    for (int i=0; i<PHYSICAL_PAGES; i++){
+        if (lru_table[i] != -1){
+            lru_table[i]++;
+        }
+    }
+    lru_table[physical_page] = 0;
+}
 int main(int argc, const char *argv[])
 {
     if (argc != 5) {
@@ -138,6 +160,10 @@ int main(int argc, const char *argv[])
     // Fill page tlb entries with -1 for initially empty table.
     for (int i = 0; i < TLB_SIZE; i++) {
         tlb[i].valid_bit = 0;
+    }
+
+    for (int i=0; i<PHYSICAL_PAGES; i++){
+        lru_table[i] = -1;
     }
 
     // Character buffer for reading lines of input file.
@@ -196,7 +222,7 @@ int main(int argc, const char *argv[])
 
         int physical_address = (physical_page << OFFSET_BITS) | offset;
         signed char value = main_memory[physical_page * PAGE_SIZE + offset];
-
+        update_lru_table(physical_page);
         printf("Virtual address: %d Physical address: %d Value: %d\n", logical_address, physical_address, value);
     }
     printf("Number of Translated Addresses = %d\n", total_addresses);
