@@ -26,8 +26,8 @@
 #define BUFFER_SIZE 10
 
 struct tlbentry {
-    unsigned char logical;
-    unsigned char physical;
+    int logical;
+    int physical;
     int valid_bit;
 };
 struct pagetable_entry {
@@ -56,7 +56,7 @@ int max(int a, int b)
 }
 
 /* Returns the physical address from TLB or -1 if not present. */
-int search_tlb(unsigned char logical_page) {
+int search_tlb(int logical_page) {
     for (int i =0; i< TLB_SIZE; i++){
         if (tlb[i].logical == logical_page && tlb[i].valid_bit == 1){
             return tlb[i].physical;
@@ -66,7 +66,7 @@ int search_tlb(unsigned char logical_page) {
 }
 
 /* Update valid bit of overwritten entry at tlb. */
-void update_tlb(unsigned char physical_page) {
+void update_tlb(int physical_page) {
     for (int i =0; i< TLB_SIZE; i++) {
         if (tlb[i].physical == physical_page) {
             tlb[i].valid_bit = 0;
@@ -75,7 +75,7 @@ void update_tlb(unsigned char physical_page) {
     }
 }
 /* Update valid bit of overwritten entry at pagetable. */
-void update_pagetable(unsigned char physical_page) {
+void update_pagetable(int physical_page) {
     for (int i =0; i< VIRTUAL_PAGES; i++) {
         if (page_table[i].physical == physical_page) {
             page_table[i].valid_bit = 0;
@@ -85,7 +85,7 @@ void update_pagetable(unsigned char physical_page) {
 }
 
 /* Adds the specified mapping to the TLB, replacing the oldest mapping (FIFO replacement). */
-void add_to_tlb(unsigned char logical, unsigned char physical) {
+void add_to_tlb(int logical, int physical) {
     tlb[tlbindex % TLB_SIZE].logical = logical;
     tlb[tlbindex % TLB_SIZE].physical = physical;
     tlb[tlbindex % TLB_SIZE].valid_bit = 1;
