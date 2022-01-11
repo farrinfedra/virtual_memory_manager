@@ -68,7 +68,7 @@ int search_tlb(unsigned char logical_page) {
 void add_to_tlb(unsigned char logical, unsigned char physical) {
     tlb[tlbindex % TLB_SIZE].logical = logical;
     tlb[tlbindex % TLB_SIZE].physical = physical;
-    tlb[tlbindex % TLB_SIZE].valid_bit = 1;
+
     tlbindex++;
 }
 
@@ -76,10 +76,29 @@ void update_tlb(unsigned char logical, unsigned char physical){
     //TODO
 }
 
+int FIFO(){
+    return 1;
+}
+
+int LRU(){
+    return 2;
+}
+
 int main(int argc, const char *argv[])
 {
     if (argc != 5) {
         fprintf(stderr, "Usage ./virtmem backingstore input -p 0/1\n");
+        exit(1);
+    }
+
+    int (*page_replacement_policy)();
+
+    if (argv[4] == 0){
+        page_replacement_policy = &FIFO;
+    }else if (argv[4] == 1){
+        page_replacement_policy = &LRU;
+    }else{
+        fprintf(stderr, "Page replacement policy should be 0 or 1\n");
         exit(1);
     }
 
@@ -126,8 +145,17 @@ int main(int argc, const char *argv[])
 
             // Page fault
             if (physical_page == -1) {
-                /* TODO */
                 page_faults ++;
+                int frame_num;
+                if(argv[4] == 0) {
+                    //
+                    frame_num = FIFO();
+                } else{
+                    frame_num = LRU();
+                }
+
+                memcpy(main_memory + frame_num * PAGE_SIZE, backing + logical_page * PAGE_SIZE, PAGE_SIZE);
+                //TODO: need to modify free_page
             }
 
             add_to_tlb(logical_page, physical_page);
