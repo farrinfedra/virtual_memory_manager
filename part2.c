@@ -167,20 +167,15 @@ int main(int argc, const char *argv[])
         int physical_page = search_tlb(logical_page);
         // TLB hit
         if (physical_page != -1) {
-            if (page_table[logical_page].valid_bit == 1) {
-                // TLB hit
-                physical_page = page_table[logical_page].physical;
+             // TLB hit
                 tlb_hits++;
-            }
-            else physical_page = -1;
-        }
-
-        if (physical_page == -1) {
+        }else {
             // TLB miss
-            physical_page = page_table[logical_page].physical;
 
-            // Page fault
-            if (physical_page == -1) {
+            if (page_table[logical_page].valid_bit != -1 && page_table[logical_page].physical != -1){
+                physical_page = page_table[logical_page].physical;
+            } else {
+                //Page fault
                 page_faults++;
                 printf("Accessing logical: %d\n", logical_page);
 
