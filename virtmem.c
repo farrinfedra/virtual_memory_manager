@@ -50,13 +50,20 @@ int max(int a, int b)
 
 /* Returns the physical address from TLB or -1 if not present. */
 int search_tlb(unsigned char logical_page) {
-    /* TODO */
+    for (int i =0; i< TLB_SIZE; i++){
+        if (strcmp(&tlb[i].logical, &logical_page) ==0 ){
+            return tlb[i].physical;
+        }
+    }
     return -1;
 }
 
 /* Adds the specified mapping to the TLB, replacing the oldest mapping (FIFO replacement). */
 void add_to_tlb(unsigned char logical, unsigned char physical) {
-    /* TODO */
+    tlb[tlbindex % TLB_SIZE].logical = logical;
+    tlb[tlbindex % TLB_SIZE].physical = physical;
+
+    tlbindex++;
 }
 
 int main(int argc, const char *argv[])
@@ -95,11 +102,9 @@ int main(int argc, const char *argv[])
     total_addresses++;
     int logical_address = atoi(buffer);
 
-    /* TODO 
-    / Calculate the page offset and logical page number from logical_address */
+
     int offset = logical_address & OFFSET_MASK; //take last 10 bits
     int logical_page = (logical_address  & PAGE_MASK) >> OFFSET_BITS; //take first 10 bits
-    ///////
 
     int physical_page = search_tlb(logical_page);
     // TLB hit
