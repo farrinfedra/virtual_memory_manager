@@ -13,9 +13,3 @@ BACKING_STORE.bin addresses.txt.
 To run the second part, use ./part2 BACKING_STORE.bin addresses.txt -p 0 for FIFO.
 
 ./part2 BACKING_STORE.bin addresses.txt -p 1 for LRU.
-
-
-https://github.com/farrinfedra/virtual_memory_manager
-
-Atakan Kara – 69056
-Farrin Marouf Sofian - 72959
