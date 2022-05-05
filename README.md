@@ -10,6 +10,13 @@ In the second part, we used a page table struct in addition to the TLB struct th
 To run the first part, after compiling part1.c , the following arguments are needed
 BACKING_STORE.bin addresses.txt.
 
-To run the second part, use ./part2 BACKING_STORE.bin addresses.txt -p 0 for FIFO.
+To run the second part and for FIFO use:
+```
+./part2 BACKING_STORE.bin addresses.txt -p 0 
+```
 
-./part2 BACKING_STORE.bin addresses.txt -p 1 for LRU.
+for LRU use:
+```
+./part2 BACKING_STORE.bin addresses.txt -p 1 
+
+```
