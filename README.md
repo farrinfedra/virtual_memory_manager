@@ -18,5 +18,4 @@ To run the second part and for FIFO use:
 for LRU use:
 ```
 ./part2 BACKING_STORE.bin addresses.txt -p 1 
-
 ```
